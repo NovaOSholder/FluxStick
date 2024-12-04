@@ -1,18 +1,36 @@
-#include "wifi_scan.h"
+#include <M5StickCPlus.h>
 #include <WiFi.h>
 
-void WiFiScanTask(void *parameter) {
-  while (true) {
-    int networksFound = WiFi.scanNetworks();
-    M5.Lcd.fillScreen(BLACK);
-    M5.Lcd.setTextColor(WHITE);
-    M5.Lcd.setCursor(20, 30);
-    M5.Lcd.print("Wi-Fi Networks:\n");
-
-    for (int i = 0; i < networksFound; i++) {
-      M5.Lcd.printf("SSID: %s\n", WiFi.SSID(i).c_str());
-      M5.Lcd.printf("Signal Strength: %d\n", WiFi.RSSI(i));
+// Wi-Fi ağlarını tarama işlemi
+void scanWiFi() {
+    int n = WiFi.scanNetworks();  // Çevredeki ağları tarar
+    if (n == 0) {
+        M5.Lcd.println("No networks found");
+    } else {
+        M5.Lcd.println("Wi-Fi Networks Found:");
+        for (int i = 0; i < n; i++) {
+            M5.Lcd.print(i + 1);
+            M5.Lcd.print(": ");
+            M5.Lcd.print(WiFi.SSID(i));  // Ağ adı
+            M5.Lcd.print(" (");
+            M5.Lcd.print(WiFi.RSSI(i));  // Sinyal gücü
+            M5.Lcd.println(" dBm)");
+        }
     }
-    vTaskDelay(10000 / portTICK_PERIOD_MS);  // 10 saniye bekle
-  }
+}
+
+void setup() {
+    M5.begin();  // M5StickC'yi başlat
+    M5.Lcd.setTextSize(2);
+    M5.Lcd.print("Scanning Wi-Fi networks...\n");
+
+    WiFi.mode(WIFI_STA);  // ESP32'yi istasyon (client) moduna alır
+    WiFi.disconnect();    // Önceden bağlanmışsa bağlantıyı kes
+
+    delay(1000);  // Biraz bekle
+    scanWiFi();  // Wi-Fi tarama işlemini başlat
+}
+
+void loop() {
+    // Ana döngüde herhangi bir işlem yapılmaz
 }
